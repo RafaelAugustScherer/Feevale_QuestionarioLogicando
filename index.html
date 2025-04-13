@@ -1,1 +1,97 @@
-<h1>Hello world!</h1>
+<html>
+
+<head>
+</head>
+<style type="text/css">
+    body {
+        font-family: sans-serif;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    form fieldset {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    form span {
+        font-weight: bold;
+    }
+
+    form span.success {
+        color: green;
+    }
+
+    form span.error {
+        color: red;
+    }
+</style>
+
+<body>
+    <h1>Questionário Logicando</h1>
+    <h2>Criação de Questionários</h2>
+    <form id="login-form">
+        <fieldset>
+            <legend>Autenticação do usuário</legend>
+            <label for="email">E-mail</label>
+            <input
+                type="text"
+                name="email"
+            />
+            <label for="password">Senha</label>
+            <input
+                type="password"
+                name="password"
+            />
+            <button type="submit">Validar acesso</button>
+        </fieldset>
+    </form>
+</body>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
+    // Not a secret
+    const firebaseConfig = {
+        apiKey: "AIzaSyADvtZ4i_PeUnqJiuv9iAxRyJ6LqUtYmiI",
+        authDomain: "feevale-questionario-logicando.firebaseapp.com",
+        projectId: "feevale-questionario-logicando",
+        storageBucket: "feevale-questionario-logicando.firebasestorage.app",
+        messagingSenderId: "592064493781",
+        appId: "1:592064493781:web:0ef5c59cb83d408d314a5c"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const loginForm = document.getElementById("login-form");
+
+    loginForm.addEventListener("submit", e => {
+        e.preventDefault();
+
+        const formData = new FormData(loginForm);
+
+        signInWithEmailAndPassword(auth, formData.get("email"), formData.get("password"))
+            .then(userCredential => {
+                const user = userCredential.user;
+                console.log(user);
+
+                loginForm.firstElementChild.appendChild(Object.assign(document.createElement('span'), { textContent: 'Usuário autenticado com sucesso!', className: 'success' }));
+            })
+            .catch(error => {
+                console.log(`Login error: Error with code ${error.code} and message ${error.message} `);
+
+                let errorMessageText = 'Houve um erro no processo de autenticação.';
+
+                if(error.code == 'auth/invalid-credential') {
+                    errorMessageText = 'Credenciais de acesso inválidas.';
+                }
+
+                loginForm.firstElementChild.appendChild(Object.assign(document.createElement('span'), { textContent: errorMessageText, className: 'error' }));
+            });
+    })
+</script>
+
+</html>
