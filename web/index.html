@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+</head>
+<style type="text/css">
+    body {
+        font-family: sans-serif;
+        overflow-y: auto;
+        scrollbar-gutter: stable;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        margin: 50px 0;
+    }
+
+    form fieldset {
+        display: flex;
+        position: relative;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    form span {
+        font-weight: bold;
+    }
+
+    form span.success {
+        color: green;
+    }
+
+    form span.error {
+        color: red;
+    }
+
+    .question-container>div {
+        margin: 10px 0;
+    }
+
+    .question-container>div:nth-child(2),
+    .question-container>div:nth-child(2)>div {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    input {
+        margin: 0 10px;
+    }
+
+    button {
+        margin: 10px 0;
+        padding: 5px;
+        font-weight: 600;
+    }
+
+    .disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .remove-option-button {
+        width: 30px;
+        text-align: center;
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .remove-question-button {
+        cursor: pointer;
+        position: absolute;
+        right: 10px;
+        top: 10px;
+    }
+
+    .option-row {
+        display: flex;
+        align-items: center;
+    }
+
+    .option-row input {
+        flex-grow: 1;
+    }
+</style>
+
+<body>
+    <h1>Questionário Logicando</h1>
+    <h2>Criação de Questionários</h2>
+    <form id="login-form">
+        <fieldset>
+            <legend>Autenticação do usuário</legend>
+            <label for="email">E-mail</label>
+            <input
+                id="email"
+                type="text"
+                name="email"
+                autocomplete="email"
+            />
+            <label for="password">Senha</label>
+            <input
+                id="password"
+                type="password"
+                name="password"
+            />
+            <button type="submit">Validar acesso</button>
+        </fieldset>
+    </form>
+    <form id="fields-form">
+        <fieldset>
+            <legend>Informações do Questionário</legend>
+        </fieldset>
+        <button
+            type="button"
+            onclick="addQuestionToFieldsForm()"
+        >Adicionar Nova Pergunta</button>
+        <button type="submit">Criar questionário</button>
+    </form>
+</body>
+<script type="module">
+    import * as firebase from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+
+    // Not a secret
+    const firebaseConfig = {
+        apiKey: "AIzaSyADvtZ4i_PeUnqJiuv9iAxRyJ6LqUtYmiI",
+        authDomain: "feevale-questionario-logicando.firebaseapp.com",
+        projectId: "feevale-questionario-logicando",
+        storageBucket: "feevale-questionario-logicando.firebasestorage.app",
+        messagingSenderId: "592064493781",
+        appId: "1:592064493781:web:0ef5c59cb83d408d314a5c"
+    };
+
+    globalThis.app = firebase.initializeApp(firebaseConfig);
+</script>
+<script
+    src="./js/loginForm.js"
+    type="module"
+></script>
+<script
+    src="./js/fieldsForm.js"
+    type="module"
+></script>
+
+</html>

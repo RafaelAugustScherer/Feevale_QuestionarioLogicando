@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "592064493781",
+    "project_id": "feevale-questionario-logicando",
+    "storage_bucket": "feevale-questionario-logicando.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592064493781:android:fbf95b478bf064ea314a5c",
+        "android_client_info": {
+          "package_name": "com.example.feevale_logicando"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7XvnA32HLM378HgfO_Vw97y2FJFPXtcI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
