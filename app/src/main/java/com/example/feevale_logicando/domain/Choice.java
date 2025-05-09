@@ -4,7 +4,7 @@ public class Choice {
     private final int id;
     public String text;
 
-    Choice(int id, String text) {
+    public Choice(int id, String text) {
         this.text = text;
         this.id = id;
     }

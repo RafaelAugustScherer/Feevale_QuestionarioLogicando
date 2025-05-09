@@ -7,7 +7,7 @@ public class QuestionMultipleChoice extends Question {
     private Choice[] choices;
     private List<Integer> selectedChoices;
 
-    QuestionMultipleChoice(int id, String text, String type, Choice[] choices) {
+    public QuestionMultipleChoice(int id, String text, String type, Choice[] choices) {
         super(id, text, type);
         this.choices = choices;
         this.selectedChoices = new ArrayList<>();
