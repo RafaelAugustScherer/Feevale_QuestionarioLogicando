@@ -3,7 +3,7 @@ package com.example.feevale_logicando.domain;
 public class QuestionText extends Question {
     private String answer;
 
-    QuestionText(int id, String text, String type) {
+    public QuestionText(int id, String text, String type) {
         super(id, text, type);
     }
 

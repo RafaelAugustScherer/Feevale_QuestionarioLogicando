@@ -11,15 +11,28 @@ public class Form {
     public Date availableUntil;
     public Question[] questions;
 
-    public Form() {
-
-    }
 
     public Form(String name, Date availableFrom, Date availableUntil, Question[] questions) {
         this.name = name;
         this.availableFrom = availableFrom;
         this.availableUntil = availableUntil;
         this.questions = questions;
+    }
+
+    public String getTitle() {
+        return name;
+    }
+
+    public Date getAvailableFrom() {
+        return availableFrom;
+    }
+
+    public Date getAvailableUntil() {
+        return availableUntil;
+    }
+
+    public Question[] getQuestions() {
+        return questions;
     }
 
     @SuppressWarnings("unchecked")

@@ -4,7 +4,7 @@ public class QuestionSingleChoice extends Question {
     private Choice[] choices;
     private Integer selectedChoice;
 
-    QuestionSingleChoice(int id, String text, String type, Choice[] choices) {
+    public QuestionSingleChoice(int id, String text, String type, Choice[] choices) {
         super(id, text, type);
         this.choices = choices;
     }

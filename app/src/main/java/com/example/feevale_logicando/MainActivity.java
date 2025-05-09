@@ -1,18 +1,28 @@
 package com.example.feevale_logicando;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.feevale_logicando.domain.Choice;
+import com.example.feevale_logicando.domain.Form;
+import com.example.feevale_logicando.domain.Question;
 import com.example.feevale_logicando.domain.QuestionMultipleChoice;
+import com.example.feevale_logicando.domain.QuestionSingleChoice;
+import com.example.feevale_logicando.domain.QuestionText;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,51 +32,132 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        List<QuestionMultipleChoice> questions = new ArrayList<>();
-        questions.add(createSampleQuestion());
-
-
         LinearLayout questionContainer = findViewById(R.id.question_container);
 
+        TextView formTitle = new TextView(this);
+        formTitle.setTextSize(20);
+        formTitle.setText(form.getTitle());
+        formTitle.setTextColor(Color.BLACK);
+        questionContainer.addView(formTitle);
 
-        for (QuestionMultipleChoice question : questions) {
+
+        for (Question question : form.getQuestions()) {
+
 
             TextView questionText = new TextView(this);
             questionText.setText(question.getText());
+            questionText.setTextColor(Color.DKGRAY);
+            questionText.setTextSize(16);
             questionContainer.addView(questionText);
 
+            if (question instanceof QuestionText) {
+                EditText answerEditText = new EditText(this);
+                questionContainer.addView(answerEditText);
 
-            for (Choice choice : question.getChoices()) {
-                CheckBox choiceCheckBox = new CheckBox(this);
-                choiceCheckBox.setText(choice.getText());
-
-                choiceCheckBox.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (((CheckBox) v).isChecked()) {
-                            Toast.makeText(MainActivity.this, "Selecionado: " + choice.getText(), Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(MainActivity.this, "Desmarcado: " + choice.getText(), Toast.LENGTH_SHORT).show();
-                        }
+                answerEditText.setOnFocusChangeListener((v, hasFocus) -> {
+                    if (!hasFocus) {
+                        String answer = answerEditText.getText().toString();
+                        Toast.makeText(MainActivity.this, "Resposta: " + answer, Toast.LENGTH_SHORT).show();
                     }
                 });
 
-                questionContainer.addView(choiceCheckBox);
+            } else if (question instanceof QuestionSingleChoice) {
+                QuestionSingleChoice singleChoice = (QuestionSingleChoice) question;
+                RadioGroup radioGroup = new RadioGroup(this);
+
+                for (Choice choice : singleChoice.getChoices()) {
+                    RadioButton radioButton = new RadioButton(this);
+                    radioButton.setText(choice.getText());
+                    radioGroup.addView(radioButton);
+                }
+
+                questionContainer.addView(radioGroup);
+
+                radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+                    RadioButton selectedRadioButton = findViewById(checkedId);
+                    if (selectedRadioButton != null) {
+                        String answer = selectedRadioButton.getText().toString();
+                        Toast.makeText(MainActivity.this, "Escolha única selecionada: " + answer, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else if (question instanceof QuestionMultipleChoice) {
+                QuestionMultipleChoice multipleChoice = (QuestionMultipleChoice) question;
+
+                for (Choice choice : multipleChoice.getChoices()) {
+                    CheckBox checkBox = new CheckBox(this);
+                    checkBox.setText(choice.getText());
+                    questionContainer.addView(checkBox);
+
+                    checkBox.setOnClickListener(v -> {
+                        CheckBox checkBoxView = (CheckBox) v;
+                        if (checkBoxView.isChecked()) {
+                            Toast.makeText(MainActivity.this, "Selecionado: " + checkBoxView.getText(), Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Desmarcado: " + checkBoxView.getText(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             }
         }
     }
 
-    // Método para criar uma pergunta de múltipla escolha de exemplo
-    private QuestionMultipleChoice createSampleQuestion() {
+    //Text
+    QuestionText questionText = new QuestionText(1, "Porque usar Android Studio?", "text");
 
-        Choice choice1 = new Choice(1, "Escolha 1");
-        Choice choice2 = new Choice(2, "Escolha 2");
-        Choice choice3 = new Choice(3, "Escolha 3");
+   //Single
+    Choice choicesingle1 = new Choice(1, "Sim");
+    Choice choicesingle2 = new Choice(2, "Não");
+    Choice choicesingle3 = new Choice(3, "Talvez");
 
+    Choice[] choicessingle = new Choice[]{choicesingle1, choicesingle2, choicesingle3};
+    Question questionSingle = new QuestionSingleChoice(2, "Usaria Android Studio futuramente?", "Single",choicessingle);
+
+
+    //Multiple
+    Choice choicemultiple1= new Choice(1, "Flexibilidade");
+    Choice choicemultiple2 = new Choice(2, "Layout Bonito");
+    Choice choicemultiple3 = new Choice(3, "Facilidade de uso");
+
+    Choice[] choicesMultiple = new Choice[]{choicemultiple1, choicemultiple2, choicemultiple3};
+    Question questionMultiple = new QuestionMultipleChoice(3,"Quais são os pontos que mais gosta no Android Studio?", "Multiple", choicesMultiple);
+
+    Question[] questions = new Question[]{questionText, questionMultiple, questionSingle};
+    Form form = new Form(
+            "Primeiro teste dos guri",
+            new Date(),  // Data de início (hoje)
+            new Date(System.currentTimeMillis() + 86400000L),  // Data de término (1 dia depois, ou seja, amanhã)
+            questions
+    );
+    private QuestionSingleChoice createSingleChoiceQuestion() {
+        Choice choicesingle1 = new Choice(1, "Sim");
+        Choice choicesingle2 = new Choice(2, "Não");
+        Choice choicesingle3 = new Choice(3, "Talvez");
+
+        Choice[] choices = new Choice[]{choicesingle1, choicesingle2, choicesingle3};
+        return new QuestionSingleChoice(2, "Usaria Android Studio futuramente?", "single", choices);
+    }
+
+    private QuestionMultipleChoice createMultipleChoiceQuestion() {
+        Choice choice1 = new Choice(1, "Flexibilidade");
+        Choice choice2 = new Choice(2, "Layout Bonito");
+        Choice choice3 = new Choice(3, "Facilidade de uso");
 
         Choice[] choices = new Choice[]{choice1, choice2, choice3};
-        return new QuestionMultipleChoice(1, "Quais opções você escolhe?", "multiple", choices);
+        return new QuestionMultipleChoice(3, "Quais são os pontos que mais gosta no Android Studio?", "multiple", choices);
+    }
+
+    private void styleTextView(TextView textView) {
+        textView.setTextColor(Color.WHITE);
+        textView.setTextSize(18f);
+        textView.setPadding(0, 20, 0, 10);
+    }
+
+    private void styleEditText(EditText editText) {
+        editText.setBackgroundResource(android.R.drawable.edit_text);
+        editText.setPadding(20, 10, 20, 10);
+        editText.setTextColor(Color.BLACK);
+        editText.setHintTextColor(Color.GRAY);
     }
 }
 
