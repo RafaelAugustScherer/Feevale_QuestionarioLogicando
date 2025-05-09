@@ -10,8 +10,9 @@ auth.onAuthStateChanged(async (user) => {
         globalThis.user = user;
         document.getElementById('email').setAttribute('value', user.email);
 
-        console.log(loginForm.firstElementChild.childElementCount);
-        loginForm.firstElementChild.appendChild(Object.assign(document.createElement('span'), { textContent: 'Usuário autenticado com sucesso!', className: 'success' }));
+        if(!loginForm.querySelector('.success')) {
+            loginForm.firstElementChild.appendChild(Object.assign(document.createElement('span'), { textContent: 'Usuário autenticado com sucesso!', className: 'success' }));
+        };
         fieldsForm.classList.remove('disabled'); // ENABLE FORM AFTER AUTHENTICATION
     }
 });
@@ -25,10 +26,8 @@ loginForm.addEventListener("submit", e => {
         .then(userCredential => {
             const user = userCredential.user;
             globalThis.user = user;
-            console.log(user);
 
-            loginForm.firstElementChild.appendChild(Object.assign(document.createElement('span'), { textContent: 'Usuário autenticado com sucesso!', className: 'success' }));
-            fieldsForm.classList.remove('disabled'); // ENABLE FORM AFTER AUTHENTICATION
+            loginForm.querySelector('.error').remove();
         })
         .catch(error => {
             console.log(`Login error: Error with code ${error.code} and message ${error.message} `);
@@ -39,6 +38,8 @@ loginForm.addEventListener("submit", e => {
                 errorMessageText = 'Credenciais de acesso inválidas.';
             }
 
+            loginForm.querySelector('.success').remove();
+            loginForm.querySelector('.error').remove();
             loginForm.firstElementChild.appendChild(Object.assign(document.createElement('span'), { textContent: errorMessageText, className: 'error' }));
         });
 });

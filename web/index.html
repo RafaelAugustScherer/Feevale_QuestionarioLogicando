@@ -118,6 +118,27 @@
     <form id="fields-form">
         <fieldset>
             <legend>Informações do Questionário</legend>
+            <label for="name">Nome</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                required
+            />
+            <label for="date-available-from">Aberto para respostas de:</label>
+            <input
+                type="datetime-local"
+                id="date-available-from"
+                name="date-available-from"
+                required
+            />
+            <label for="date-available-until">Aberto para respostas até:</label>
+            <input
+                type="datetime-local"
+                id="date-available-until"
+                name="date-available-until"
+                required
+            />
         </fieldset>
         <button
             type="button"

@@ -1,4 +1,4 @@
-import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+import { getFirestore, collection, addDoc, serverTimestamp, Timestamp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
 const db = getFirestore(globalThis.app);
 
@@ -11,7 +11,7 @@ const QUESTION_TYPES = {
 const SELECTOR_TYPES = {
     TYPE: 0,
     TEXT: 1,
-    OPTION: 2
+    CHOICE: 2
 };
 
 const fieldsForm = document.getElementById("fields-form");
@@ -20,15 +20,15 @@ const getComponentRefById = (id) => document.getElementById(id);
 
 const getQuantityOfQuestions = () => fieldsForm.querySelector('fieldset').querySelectorAll('fieldset').length;
 
-const getSeletorByType = (type, questionNumber, optionNumber) => {
+const getSelectorByType = (type, questionNumber, choiceNumber) => {
     if(type === SELECTOR_TYPES.TYPE) {
         return `question-${questionNumber}-type`;
     }
     if(type === SELECTOR_TYPES.TEXT) {
         return `question-${questionNumber}-text`;
     }
-    if(type === SELECTOR_TYPES.OPTION) {
-        return `question-${questionNumber}-option-${optionNumber}`;
+    if(type === SELECTOR_TYPES.CHOICE) {
+        return `question-${questionNumber}-choice-${choiceNumber}`;
     }
     return 'Invalid selector options';
 };
@@ -47,23 +47,23 @@ const createInputStructure = ({ uniqueId, name, shouldWrap, required }) => {
     return { labelElement, inputElement };
 };
 
-const addOption = (questionNumber, optionNumber, optionsContainer, onRemove) => {
-    const { inputElement, labelElement } = createInputStructure({ uniqueId: getSeletorByType(SELECTOR_TYPES.OPTION, questionNumber, optionNumber), required: true });
+const addChoice = (questionNumber, choiceNumber, choicesContainer, onRemove) => {
+    const { inputElement, labelElement } = createInputStructure({ uniqueId: getSelectorByType(SELECTOR_TYPES.CHOICE, questionNumber, choiceNumber), required: true });
 
-    labelElement.textContent = `Opção ${optionNumber}:`;
+    labelElement.textContent = `Opção ${choiceNumber}:`;
 
     inputElement.setAttribute('type', 'text');
-    inputElement.setAttribute('class', 'question-option');
+    inputElement.setAttribute('class', 'question-choice');
 
-    optionsContainer.appendChild(labelElement);
+    choicesContainer.appendChild(labelElement);
 
     if(onRemove) {
         const wrapper = document.createElement('div');
-        wrapper.className = 'option-row';
+        wrapper.className = 'choice-row';
 
         const removeButton = document.createElement('span');
         removeButton.textContent = '🗑️';
-        removeButton.className = 'remove-option-button';
+        removeButton.className = 'remove-choice-button';
         removeButton.addEventListener('click', () => {
             labelElement.remove();
             wrapper.remove();
@@ -72,11 +72,11 @@ const addOption = (questionNumber, optionNumber, optionsContainer, onRemove) => 
 
         wrapper.appendChild(inputElement);
         wrapper.appendChild(removeButton);
-        optionsContainer.appendChild(wrapper);
+        choicesContainer.appendChild(wrapper);
         return;
     }
 
-    optionsContainer.appendChild(inputElement);
+    choicesContainer.appendChild(inputElement);
 };
 
 const makeQuestionComponent = () => {
@@ -94,7 +94,7 @@ const makeQuestionComponent = () => {
             container.removeChild(container.lastChild);
         }
 
-        const { inputElement, labelElement } = createInputStructure({ uniqueId: getSeletorByType(SELECTOR_TYPES.TEXT, thisQuestionNumber), required: true });
+        const { inputElement, labelElement } = createInputStructure({ uniqueId: getSelectorByType(SELECTOR_TYPES.TEXT, thisQuestionNumber), required: true });
 
         labelElement.textContent = 'Texto da Pergunta:';
         inputElement.setAttribute('type', 'text');
@@ -103,34 +103,34 @@ const makeQuestionComponent = () => {
         questionContent.appendChild(labelElement);
         questionContent.appendChild(inputElement);
 
-        const optionsContainer = document.createElement('div');
+        const choicesContainer = document.createElement('div');
 
         if([QUESTION_TYPES.SINGLE, QUESTION_TYPES.MULTIPLE].includes(questionType)) {
-            const addOptionButton = document.createElement('button');
-            addOptionButton.textContent = 'Adicionar Opção';
-            addOptionButton.type = 'button';
+            const addChoiceButton = document.createElement('button');
+            addChoiceButton.textContent = 'Adicionar Opção';
+            addChoiceButton.type = 'button';
 
-            let optionsCount = 0;
+            let choicesCount = 0;
 
             for(let i = 0; i < 2; i++) {
-                optionsCount++;
-                addOption(thisQuestionNumber, optionsCount, optionsContainer);
+                choicesCount++;
+                addChoice(thisQuestionNumber, choicesCount, choicesContainer);
             }
 
-            addOptionButton.addEventListener('click', () => {
-                optionsCount++;
-                addOption(thisQuestionNumber, optionsCount, optionsContainer, () => {
-                    optionsCount--;
-                    addOptionButton.classList.remove('hidden');
+            addChoiceButton.addEventListener('click', () => {
+                choicesCount++;
+                addChoice(thisQuestionNumber, choicesCount, choicesContainer, () => {
+                    choicesCount--;
+                    addChoiceButton.classList.remove('hidden');
                 });
 
-                if(optionsCount >= 6) {
-                    addOptionButton.classList.add('hidden');
+                if(choicesCount >= 6) {
+                    addChoiceButton.classList.add('hidden');
                 }
             });
 
-            questionContent.appendChild(optionsContainer);
-            questionContent.appendChild(addOptionButton);
+            questionContent.appendChild(choicesContainer);
+            questionContent.appendChild(addChoiceButton);
         }
 
         container.appendChild(questionContent);
@@ -138,10 +138,10 @@ const makeQuestionComponent = () => {
 
     const typeContainer = document.createElement('div');
 
-    const createRadioOption = (questionType, label) => {
+    const createRadioChoice = (questionType, label) => {
         const { labelElement, inputElement } = createInputStructure({
             uniqueId: `question-${thisQuestionNumber}-type-${questionType}`,
-            name: getSeletorByType(SELECTOR_TYPES.TYPE, thisQuestionNumber),
+            name: getSelectorByType(SELECTOR_TYPES.TYPE, thisQuestionNumber),
             required: true
         });
 
@@ -156,9 +156,9 @@ const makeQuestionComponent = () => {
         typeContainer.appendChild(labelElement);
     };
 
-    createRadioOption(QUESTION_TYPES.TEXT, 'Texto');
-    createRadioOption(QUESTION_TYPES.SINGLE, 'Escolha Única');
-    createRadioOption(QUESTION_TYPES.MULTIPLE, 'Escolha Múltipla');
+    createRadioChoice(QUESTION_TYPES.TEXT, 'Texto');
+    createRadioChoice(QUESTION_TYPES.SINGLE, 'Escolha Única');
+    createRadioChoice(QUESTION_TYPES.MULTIPLE, 'Escolha Múltipla');
 
     container.appendChild(typeContainer);
 
@@ -189,11 +189,11 @@ const removeQuestionFromFieldsForm = (fieldsetElement) => {
 
             fieldset.querySelector('legend').textContent = `Pergunta ${questionPosition}`;
 
-            fieldset.querySelectorAll('.input-type').forEach(inputTypeSelector => inputTypeSelector.setAttribute('name', getSeletorByType(SELECTOR_TYPES.TYPE, questionPosition)));
+            fieldset.querySelectorAll('.input-type').forEach(inputTypeSelector => inputTypeSelector.setAttribute('name', getSelectorByType(SELECTOR_TYPES.TYPE, questionPosition)));
 
             fieldset.querySelector('.question-text')?.setAttribute('name', `question-${questionPosition}-text`);
-            fieldset.querySelectorAll('.question-option').forEach((element, key) => {
-                element.setAttribute('name', getSeletorByType(SELECTOR_TYPES.OPTION, questionPosition, key + 1));
+            fieldset.querySelectorAll('.question-choice').forEach((element, key) => {
+                element.setAttribute('name', getSelectorByType(SELECTOR_TYPES.CHOICE, questionPosition, key + 1));
             });
         });
     }
@@ -215,8 +215,8 @@ fieldsForm.addEventListener('submit', async (e) => {
     const questionsPayload = [];
 
     for(let questionNumber = 1; questionNumber <= numberOfQuestions; questionNumber++) {
-        const questionType = formData.get(getSeletorByType(SELECTOR_TYPES.TYPE, questionNumber));
-        const questionText = formData.get(getSeletorByType(SELECTOR_TYPES.TEXT, questionNumber));
+        const questionType = formData.get(getSelectorByType(SELECTOR_TYPES.TYPE, questionNumber));
+        const questionText = formData.get(getSelectorByType(SELECTOR_TYPES.TEXT, questionNumber));
 
         questionsPayload[questionNumber - 1] = {
             type: questionType,
@@ -224,30 +224,41 @@ fieldsForm.addEventListener('submit', async (e) => {
         };
 
         if([QUESTION_TYPES.SINGLE, QUESTION_TYPES.MULTIPLE].includes(questionType)) {
-            questionsPayload[questionNumber - 1].options = [];
+            questionsPayload[questionNumber - 1].choices = [];
 
 
-            Array.from({ length: 6 }, (_, i) => i + 1).forEach((optionNumber) => {
-                const optionText = formData.get(getSeletorByType(SELECTOR_TYPES.OPTION, questionNumber, optionNumber));
-                if(optionText) {
-                    questionsPayload[questionNumber - 1].options.push(optionText);
+            Array.from({ length: 6 }, (_, i) => i + 1).forEach((choiceNumber) => {
+                const choiceText = formData.get(getSelectorByType(SELECTOR_TYPES.CHOICE, questionNumber, choiceNumber));
+                if(choiceText) {
+                    questionsPayload[questionNumber - 1].choices.push({
+                        choiceId: choiceNumber,
+                        text: choiceText
+                    });
                 }
             });
         }
     }
 
-    console.log({ name: 'Teste', questions: questionsPayload, userId: globalThis.user.uid });
-
     addDoc(collection(db, '/forms'), {
-        name: 'Teste',
+        name: formData.get('name'),
+        dateAvailableFrom: new Date(formData.get('date-available-from')),
+        dateAvailableUntil: new Date(formData.get('date-available-until')),
         questions: questionsPayload,
         userId: globalThis.user.uid,
         createdAt: serverTimestamp()
     })
-        .catch(error => console.error(error));
-
-    // addDoc(collection(db, `/users/${globalThis.user.uid}/forms`), { name: 'Teste', questions: questionsPayload })
-    //     .catch(error => console.error(error));
+        .then(() => {
+            fieldsForm.querySelector('.error').remove();
+            const successSpan = fieldsForm.appendChild(Object.assign(document.createElement('span'), { textContent: 'Questionário criado com sucesso!', className: 'success' }));
+            setTimeout(() => {
+                successSpan.remove();
+            }, 5000);
+        })
+        .catch(error => {
+            console.error(error);
+            fieldsForm.querySelector('.error').remove();
+            loginForm.firstElementChild.appendChild(Object.assign(document.createElement('span'), { textContent: 'Houve um erro ao criar o questionário', className: 'error' }));
+        });
 });
 
 window.addQuestionToFieldsForm = addQuestionToFieldsForm;
