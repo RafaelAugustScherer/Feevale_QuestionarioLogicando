@@ -25,11 +25,11 @@ public class QuestionMultipleChoice extends Question {
         return this.choices[index].text;
     }
 
-    public void addSelectedChoice(Integer choiceId) {
+    public void addSelectedChoice(int choiceId) {
         this.selectedChoices.add(choiceId);
     }
 
-    public void removeSelectedChoice(Integer choiceId) {
+    public void removeSelectedChoice(int choiceId) {
         this.selectedChoices.remove(choiceId);
     }
 }

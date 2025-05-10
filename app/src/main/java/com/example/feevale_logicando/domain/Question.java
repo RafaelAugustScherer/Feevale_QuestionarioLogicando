@@ -1,5 +1,6 @@
 package com.example.feevale_logicando.domain;
 
+import com.example.feevale_logicando.adapter.FirebaseAdapter;
 import com.example.feevale_logicando.domain.enums.QuestionType;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class Question {
 
     @SuppressWarnings("unchecked")
     public static Question fromData(Map<String, Object> data) throws Exception {
-        int questionId = (int) data.get("questionId");
+        int questionId = FirebaseAdapter.handleIntValue(data, "questionId");
         String questionType = (String) data.get("type");
 
         if (questionType == null) {
@@ -49,7 +50,7 @@ public class Question {
         }
 
         for (Map<String, Object> choice : choicesData) {
-            choices.add(new Choice((int) choice.get("choiceId"), (String) choice.get("text")));
+            choices.add(new Choice(FirebaseAdapter.handleIntValue(choice, "choiceId"), (String) choice.get("text")));
         }
 
         if (questionType.equals(QuestionType.SINGLE_CHOICE.value)) {

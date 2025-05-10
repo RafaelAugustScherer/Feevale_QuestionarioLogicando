@@ -2,7 +2,7 @@ package com.example.feevale_logicando.domain;
 
 public class QuestionSingleChoice extends Question {
     private Choice[] choices;
-    private Integer selectedChoice;
+    private int selectedChoice;
 
     public QuestionSingleChoice(int id, String text, String type, Choice[] choices) {
         super(id, text, type);
@@ -13,11 +13,11 @@ public class QuestionSingleChoice extends Question {
         return this.choices;
     }
 
-    public Integer getSelectedChoice() {
+    public int getSelectedChoice() {
         return this.selectedChoice;
     }
 
-    public void setSelectedChoice(Integer selectedChoice) {
+    public void setSelectedChoice(int selectedChoice) {
         this.selectedChoice = selectedChoice;
     }
 

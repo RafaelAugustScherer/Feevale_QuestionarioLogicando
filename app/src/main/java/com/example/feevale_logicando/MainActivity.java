@@ -2,6 +2,7 @@ package com.example.feevale_logicando;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -16,15 +17,19 @@ import com.example.feevale_logicando.domain.Question;
 import com.example.feevale_logicando.domain.QuestionMultipleChoice;
 import com.example.feevale_logicando.domain.QuestionSingleChoice;
 import com.example.feevale_logicando.domain.QuestionText;
+import com.example.feevale_logicando.service.FormService;
+import com.example.feevale_logicando.service.OnGetDataListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
+    protected void bootFormComponents(Form form) {
         LinearLayout questionContainer = findViewById(R.id.question_container);
 
         TextView formTitle = new TextView(this);
@@ -95,33 +100,53 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //Text
-    QuestionText questionText1 = new QuestionText(1, "Porque usar Android Studio?", "text");
-    QuestionText questionText2 = new QuestionText(4, "Porque usar Android Studio2?", "text");
-    //Single
-    Choice choicesingle1 = new Choice(1, "Sim");
-    Choice choicesingle2 = new Choice(2, "Não");
-    Choice choicesingle3 = new Choice(3, "Talvez");
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-    Choice[] choicessingle = new Choice[]{choicesingle1, choicesingle2, choicesingle3};
-    Question questionSingle = new QuestionSingleChoice(2, "Usaria Android Studio futuramente?", "Single",choicessingle);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+        FormService formService = new FormService(db);
 
-    //Multiple
-    Choice choicemultiple1= new Choice(1, "Flexibilidade");
-    Choice choicemultiple2 = new Choice(2, "Layout Bonito");
-    Choice choicemultiple3 = new Choice(3, "Facilidade de uso");
-
-    Choice[] choicesMultiple = new Choice[]{choicemultiple1, choicemultiple2, choicemultiple3};
-    Question questionMultiple = new QuestionMultipleChoice(3,"Quais são os pontos que mais gosta no Android Studio?", "Multiple", choicesMultiple);
-
-    Question[] questions = new Question[]{questionText1, questionText2, questionMultiple, questionSingle};
-    Form form = new Form(
-            "Primeiro teste dos guri",
-            new Date(),
-            new Date(System.currentTimeMillis() + 86400000L),
-            questions
-    );
+        ArrayList<Form> formList = new ArrayList<>();
+        formService.getAvailableForms(dataSnapshot -> {
+            for (QueryDocumentSnapshot document : dataSnapshot) {
+                Log.d("TEST", String.format("%s", document.getData()));
+                Map<String, Object> data = document.getData();
+                formList.add(Form.fromData(data));
+            }
+            bootFormComponents(formList.get(0));
+        });
+    }
+//
+//    //Text
+//    QuestionText questionText1 = new QuestionText(1, "Porque usar Android Studio?", "text");
+//    QuestionText questionText2 = new QuestionText(4, "Porque usar Android Studio2?", "text");
+//    //Single
+//    Choice choicesingle1 = new Choice(1, "Sim");
+//    Choice choicesingle2 = new Choice(2, "Não");
+//    Choice choicesingle3 = new Choice(3, "Talvez");
+//
+//    Choice[] choicessingle = new Choice[]{choicesingle1, choicesingle2, choicesingle3};
+//    Question questionSingle = new QuestionSingleChoice(2, "Usaria Android Studio futuramente?", "Single",choicessingle);
+//
+//
+//    //Multiple
+//    Choice choicemultiple1= new Choice(1, "Flexibilidade");
+//    Choice choicemultiple2 = new Choice(2, "Layout Bonito");
+//    Choice choicemultiple3 = new Choice(3, "Facilidade de uso");
+//
+//    Choice[] choicesMultiple = new Choice[]{choicemultiple1, choicemultiple2, choicemultiple3};
+//    Question questionMultiple = new QuestionMultipleChoice(3,"Quais são os pontos que mais gosta no Android Studio?", "Multiple", choicesMultiple);
+//
+//    Question[] questions = new Question[]{questionText1, questionText2, questionMultiple, questionSingle};
+//    Form form = new Form(
+//            "Primeiro teste dos guri",
+//            new Date(),
+//            new Date(System.currentTimeMillis() + 86400000L),
+//            questions
+//    );
 
 
     private void styleTextView(TextView textView) {

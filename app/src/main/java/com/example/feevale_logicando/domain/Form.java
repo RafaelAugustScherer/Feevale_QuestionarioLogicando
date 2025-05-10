@@ -1,5 +1,10 @@
 package com.example.feevale_logicando.domain;
 
+import android.util.Log;
+
+import com.example.feevale_logicando.adapter.FirebaseAdapter;
+import com.google.firebase.Timestamp;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,7 +25,7 @@ public class Form {
     }
 
     public String getTitle() {
-        return name;
+        return this.name;
     }
 
     public Date getAvailableFrom() {
@@ -52,11 +57,12 @@ public class Form {
 
             return new Form(
                     (String) data.get("name"),
-                    (Date) data.get("availableFrom"),
-                    (Date) data.get("availableUntil"),
-                    questions.toArray(new Question[0]));
+                    FirebaseAdapter.handleDateValue(data, "dateAvailableFrom"),
+                    FirebaseAdapter.handleDateValue(data, "dateAvailableUntil"),
+                    questions.toArray(new Question[0])
+            );
         } catch (Exception e) {
-            System.out.printf("Error reading form Data: %s", e.getMessage());
+            Log.d("APP ERROR", String.format("Error reading form Data: %s", e.getMessage()));
             return null;
         }
     }

@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -26,9 +27,11 @@ public class FormService {
     }
 
     public void getAvailableForms(OnGetDataListener listener) {
+        Timestamp currentTimestamp = new Timestamp(new Date());
+
         formsCollection
-                .whereLessThan("availableFrom", new Date())
-                .whereGreaterThan("availableUntil", new Date())
+                .whereLessThan("dateAvailableFrom", currentTimestamp)
+                .whereGreaterThan("dateAvailableUntil", currentTimestamp)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
