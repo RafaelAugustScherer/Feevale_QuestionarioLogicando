@@ -219,6 +219,7 @@ fieldsForm.addEventListener('submit', async (e) => {
         const questionText = formData.get(getSelectorByType(SELECTOR_TYPES.TEXT, questionNumber));
 
         questionsPayload[questionNumber - 1] = {
+            questionId: questionNumber,
             type: questionType,
             text: questionText,
         };
