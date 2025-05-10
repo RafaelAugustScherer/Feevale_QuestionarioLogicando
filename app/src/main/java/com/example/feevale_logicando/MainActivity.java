@@ -2,7 +2,6 @@ package com.example.feevale_logicando;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -10,20 +9,14 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.example.feevale_logicando.domain.Choice;
 import com.example.feevale_logicando.domain.Form;
 import com.example.feevale_logicando.domain.Question;
 import com.example.feevale_logicando.domain.QuestionMultipleChoice;
 import com.example.feevale_logicando.domain.QuestionSingleChoice;
 import com.example.feevale_logicando.domain.QuestionText;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -103,9 +96,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Text
-    QuestionText questionText = new QuestionText(1, "Porque usar Android Studio?", "text");
-
-   //Single
+    QuestionText questionText1 = new QuestionText(1, "Porque usar Android Studio?", "text");
+    QuestionText questionText2 = new QuestionText(4, "Porque usar Android Studio2?", "text");
+    //Single
     Choice choicesingle1 = new Choice(1, "Sim");
     Choice choicesingle2 = new Choice(2, "Não");
     Choice choicesingle3 = new Choice(3, "Talvez");
@@ -122,30 +115,14 @@ public class MainActivity extends AppCompatActivity {
     Choice[] choicesMultiple = new Choice[]{choicemultiple1, choicemultiple2, choicemultiple3};
     Question questionMultiple = new QuestionMultipleChoice(3,"Quais são os pontos que mais gosta no Android Studio?", "Multiple", choicesMultiple);
 
-    Question[] questions = new Question[]{questionText, questionMultiple, questionSingle};
+    Question[] questions = new Question[]{questionText1, questionText2, questionMultiple, questionSingle};
     Form form = new Form(
             "Primeiro teste dos guri",
-            new Date(),  // Data de início (hoje)
-            new Date(System.currentTimeMillis() + 86400000L),  // Data de término (1 dia depois, ou seja, amanhã)
+            new Date(),
+            new Date(System.currentTimeMillis() + 86400000L),
             questions
     );
-    private QuestionSingleChoice createSingleChoiceQuestion() {
-        Choice choicesingle1 = new Choice(1, "Sim");
-        Choice choicesingle2 = new Choice(2, "Não");
-        Choice choicesingle3 = new Choice(3, "Talvez");
 
-        Choice[] choices = new Choice[]{choicesingle1, choicesingle2, choicesingle3};
-        return new QuestionSingleChoice(2, "Usaria Android Studio futuramente?", "single", choices);
-    }
-
-    private QuestionMultipleChoice createMultipleChoiceQuestion() {
-        Choice choice1 = new Choice(1, "Flexibilidade");
-        Choice choice2 = new Choice(2, "Layout Bonito");
-        Choice choice3 = new Choice(3, "Facilidade de uso");
-
-        Choice[] choices = new Choice[]{choice1, choice2, choice3};
-        return new QuestionMultipleChoice(3, "Quais são os pontos que mais gosta no Android Studio?", "multiple", choices);
-    }
 
     private void styleTextView(TextView textView) {
         textView.setTextColor(Color.WHITE);
