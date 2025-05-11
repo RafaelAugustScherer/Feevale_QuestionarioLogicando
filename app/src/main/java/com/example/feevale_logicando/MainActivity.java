@@ -1,8 +1,11 @@
 package com.example.feevale_logicando;
 
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -10,7 +13,10 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+
 import com.example.feevale_logicando.domain.Choice;
 import com.example.feevale_logicando.domain.Form;
 import com.example.feevale_logicando.domain.Question;
@@ -18,87 +24,13 @@ import com.example.feevale_logicando.domain.QuestionMultipleChoice;
 import com.example.feevale_logicando.domain.QuestionSingleChoice;
 import com.example.feevale_logicando.domain.QuestionText;
 import com.example.feevale_logicando.service.FormService;
-import com.example.feevale_logicando.service.OnGetDataListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-
-    protected void bootFormComponents(Form form) {
-        LinearLayout questionContainer = findViewById(R.id.question_container);
-
-        TextView formTitle = new TextView(this);
-        formTitle.setTextSize(20);
-        formTitle.setText(form.getTitle());
-        formTitle.setTextColor(Color.BLACK);
-        questionContainer.addView(formTitle);
-
-
-        for (Question question : form.getQuestions()) {
-
-
-            TextView questionText = new TextView(this);
-            questionText.setText(question.getText());
-            questionText.setTextColor(Color.DKGRAY);
-            questionText.setTextSize(16);
-            questionContainer.addView(questionText);
-
-            if (question instanceof QuestionText) {
-                EditText answerEditText = new EditText(this);
-                questionContainer.addView(answerEditText);
-
-                answerEditText.setOnFocusChangeListener((v, hasFocus) -> {
-                    if (!hasFocus) {
-                        String answer = answerEditText.getText().toString();
-                        Toast.makeText(MainActivity.this, "Resposta: " + answer, Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-            } else if (question instanceof QuestionSingleChoice) {
-                QuestionSingleChoice singleChoice = (QuestionSingleChoice) question;
-                RadioGroup radioGroup = new RadioGroup(this);
-
-                for (Choice choice : singleChoice.getChoices()) {
-                    RadioButton radioButton = new RadioButton(this);
-                    radioButton.setText(choice.getText());
-                    radioGroup.addView(radioButton);
-                }
-
-                questionContainer.addView(radioGroup);
-
-                radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-                    RadioButton selectedRadioButton = findViewById(checkedId);
-                    if (selectedRadioButton != null) {
-                        String answer = selectedRadioButton.getText().toString();
-                        Toast.makeText(MainActivity.this, "Escolha única selecionada: " + answer, Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-            } else if (question instanceof QuestionMultipleChoice) {
-                QuestionMultipleChoice multipleChoice = (QuestionMultipleChoice) question;
-
-                for (Choice choice : multipleChoice.getChoices()) {
-                    CheckBox checkBox = new CheckBox(this);
-                    checkBox.setText(choice.getText());
-                    questionContainer.addView(checkBox);
-
-                    checkBox.setOnClickListener(v -> {
-                        CheckBox checkBoxView = (CheckBox) v;
-                        if (checkBoxView.isChecked()) {
-                            Toast.makeText(MainActivity.this, "Selecionado: " + checkBoxView.getText(), Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(MainActivity.this, "Desmarcado: " + checkBoxView.getText(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,19 +38,118 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-
         FormService formService = new FormService(db);
 
-        ArrayList<Form> formList = new ArrayList<>();
+        String selectedFormTitle = getIntent().getStringExtra("formTitle");
+
         formService.getAvailableForms(dataSnapshot -> {
             for (QueryDocumentSnapshot document : dataSnapshot) {
-                Log.d("TEST", String.format("%s", document.getData()));
                 Map<String, Object> data = document.getData();
-                formList.add(Form.fromData(data));
+                Form form = Form.fromData(data);
+                if (form != null && form.getTitle().equals(selectedFormTitle)) {
+                    bootFormComponents(form);
+                    break;
+                }
             }
-            bootFormComponents(formList.get(0));
         });
     }
+
+    protected void bootFormComponents(Form form) {
+        LinearLayout questionContainer = findViewById(R.id.question_container);
+        TextView formTitle = findViewById(R.id.form_title);
+        formTitle.setText(form.getTitle());
+
+        for (Question question : form.getQuestions()) {
+            CardView card = new CardView(this);
+            card.setCardElevation(6);
+            card.setRadius(12);
+            card.setUseCompatPadding(true);
+            card.setCardBackgroundColor(Color.WHITE);
+
+            LinearLayout cardLayout = new LinearLayout(this);
+            cardLayout.setOrientation(LinearLayout.VERTICAL);
+            cardLayout.setPadding(32, 32, 32, 32);
+
+            TextView questionText = new TextView(this);
+            questionText.setText(question.getText());
+            questionText.setTextColor(Color.DKGRAY);
+            questionText.setTextSize(16f);
+            cardLayout.addView(questionText);
+
+            if (question instanceof QuestionText) {
+                EditText answerEditText = new EditText(this);
+                styleEditText(answerEditText);
+                cardLayout.addView(answerEditText);
+            } else if (question instanceof QuestionSingleChoice) {
+                RadioGroup radioGroup = new RadioGroup(this);
+                for (Choice choice : ((QuestionSingleChoice) question).getChoices()) {
+                    RadioButton rb = new RadioButton(this);
+                    rb.setText(choice.getText());
+                    radioGroup.addView(rb);
+                }
+                cardLayout.addView(radioGroup);
+            } else if (question instanceof QuestionMultipleChoice) {
+                for (Choice choice : ((QuestionMultipleChoice) question).getChoices()) {
+                    CheckBox cb = new CheckBox(this);
+                    cb.setText(choice.getText());
+                    cardLayout.addView(cb);
+                }
+            }
+
+            card.addView(cardLayout);
+            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            cardParams.setMargins(0, 0, 0, 32);
+            questionContainer.addView(card, cardParams);
+        }
+
+        addSubmitButton(questionContainer);
+    }
+
+    private void styleEditText(EditText editText) {
+        editText.setBackgroundResource(android.R.drawable.edit_text);
+        editText.setPadding(24, 16, 24, 16);
+        editText.setTextColor(Color.BLACK);
+        editText.setHintTextColor(Color.GRAY);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 8, 0, 16);
+        editText.setLayoutParams(params);
+    }
+
+    private void addSubmitButton(LinearLayout container) {
+        Button submitButton = new Button(this);
+        submitButton.setText("Enviar Respostas");
+        submitButton.setBackgroundColor(Color.parseColor("#00AEEF"));
+        submitButton.setTextColor(Color.WHITE);
+        submitButton.setAllCaps(false);
+        submitButton.setPadding(32, 24, 32, 24);
+        submitButton.setTextSize(16f);
+        submitButton.setTypeface(null, Typeface.BOLD);Button btn = new Button(this);
+        btn.setText("Enviar Respostas");
+        btn.setBackgroundColor(Color.parseColor("#00AEEF"));
+        btn.setTextColor(Color.WHITE);
+        btn.setAllCaps(false);
+        btn.setPadding(32, 24, 32, 24);
+        btn.setTextSize(16f);
+        btn.setTypeface(null, Typeface.BOLD);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 32, 0, 32);
+        submitButton.setLayoutParams(params);
+
+        submitButton.setOnClickListener(v ->
+                Toast.makeText(this, "Formulário enviado!", Toast.LENGTH_LONG).show()
+        );
+
+        container.addView(submitButton);
+    }
+}
+
+
 //
 //    //Text
 //    QuestionText questionText1 = new QuestionText(1, "Porque usar Android Studio?", "text");
@@ -147,21 +178,6 @@ public class MainActivity extends AppCompatActivity {
 //            new Date(System.currentTimeMillis() + 86400000L),
 //            questions
 //    );
-
-
-    private void styleTextView(TextView textView) {
-        textView.setTextColor(Color.WHITE);
-        textView.setTextSize(18f);
-        textView.setPadding(0, 20, 0, 10);
-    }
-
-    private void styleEditText(EditText editText) {
-        editText.setBackgroundResource(android.R.drawable.edit_text);
-        editText.setPadding(20, 10, 20, 10);
-        editText.setTextColor(Color.BLACK);
-        editText.setHintTextColor(Color.GRAY);
-    }
-}
 
 
 //package com.example.feevale_logicando;
