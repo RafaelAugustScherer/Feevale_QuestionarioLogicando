@@ -9,6 +9,8 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,10 +33,7 @@ public class FormAnswerProcessor {
         this.questionLabels = questionLabels;
     }
 
-    public JSONObject generateAndValidateAnswers() {
-        JSONObject answers = new JSONObject();
-        boolean allAnswered = true;
-
+    public List<Question> generateAndValidateAnswers() {
         for (Question q : questions) {
             int qId = q.getId();
             TextView label = questionLabels.get(qId);
@@ -45,41 +44,34 @@ public class FormAnswerProcessor {
                     String text = textInputs.get(qId).getText().toString().trim();
                     if (text.isEmpty()) {
                         label.setTextColor(Color.RED);
-                        allAnswered = false;
+                        return null;
                     }
-                    answers.put(String.valueOf(qId), text);
-
+                    ((QuestionText) q).setAnswer(text);
                 } else if (q instanceof QuestionSingleChoice) {
                     RadioGroup rg = radioInputs.get(qId);
                     int selected = rg.getCheckedRadioButtonId();
                     if (selected == -1) {
                         label.setTextColor(Color.RED);
-                        allAnswered = false;
-                        answers.put(String.valueOf(qId), JSONObject.NULL);
-                    } else {
-                        RadioButton selectedButton = rg.findViewById(selected);
-                        answers.put(String.valueOf(qId), selectedButton.getTag());
+                        return null;
                     }
-
+                    RadioButton selectedButton = rg.findViewById(selected);
+                    ((QuestionSingleChoice) q).setSelectedChoice((int) selectedButton.getTag());
                 } else if (q instanceof QuestionMultipleChoice) {
-                    JSONArray selectedIds = new JSONArray();
                     for (CheckBox cb : multiInputs.get(qId)) {
                         if (cb.isChecked()) {
-                            selectedIds.put((int) cb.getTag());
+                            ((QuestionMultipleChoice) q).addSelectedChoice((int) cb.getTag());
                         }
                     }
-                    if (selectedIds.length() == 0) {
+                    if (((QuestionMultipleChoice) q).getSelectedChoices().isEmpty()) {
                         label.setTextColor(Color.RED);
-                        allAnswered = false;
+                        return null;
                     }
-                    answers.put(String.valueOf(qId), selectedIds);
                 }
             } catch (Exception e) {
                 Log.e("ANSWER_PROCESSOR", "Erro na pergunta " + qId, e);
             }
         }
-
-        return allAnswered ? answers : null;
+        return questions;
     }
 }
 

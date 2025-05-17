@@ -1,5 +1,8 @@
 package com.example.feevale_logicando.domain;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class QuestionText extends Question {
     private String answer;
 
@@ -13,5 +16,15 @@ public class QuestionText extends Question {
 
     public void setAnswer(String answer) {
         this.answer = answer;
+    }
+
+    @Override
+    public Map<String, Object> toAnswerData() {
+        Map<String, Object> questionData = new HashMap<>();
+
+        questionData.put("questionId", this.getId());
+        questionData.put("answer", this.getAnswer());
+
+        return questionData;
     }
 }

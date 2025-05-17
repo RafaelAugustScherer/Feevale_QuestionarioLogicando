@@ -1,6 +1,8 @@
 package com.example.feevale_logicando.domain;
 
-public class Choice {
+import java.io.Serializable;
+
+public class Choice implements Serializable {
     private final int id;
     public String text;
 

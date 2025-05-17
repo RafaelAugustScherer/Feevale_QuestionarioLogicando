@@ -3,11 +3,13 @@ package com.example.feevale_logicando.domain;
 import com.example.feevale_logicando.adapter.FirebaseAdapter;
 import com.example.feevale_logicando.domain.enums.QuestionType;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Question {
+public abstract class Question implements Serializable {
     private int id;
     private String text;
     private String type;
@@ -62,4 +64,6 @@ public class Question {
 
         throw new Exception(String.format("Question type %s is invalid", questionType));
     }
+
+    public abstract Map<String, Object> toAnswerData();
 }

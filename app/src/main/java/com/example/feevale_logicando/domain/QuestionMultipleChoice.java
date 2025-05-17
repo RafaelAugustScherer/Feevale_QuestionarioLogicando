@@ -1,7 +1,9 @@
 package com.example.feevale_logicando.domain;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class QuestionMultipleChoice extends Question {
     private Choice[] choices;
@@ -31,5 +33,14 @@ public class QuestionMultipleChoice extends Question {
 
     public void removeSelectedChoice(int choiceId) {
         this.selectedChoices.remove(choiceId);
+    }
+
+    public Map<String, Object> toAnswerData() {
+        Map<String, Object> questionData = new HashMap<>();
+
+        questionData.put("questionId", this.getId());
+        questionData.put("selectedChoices", this.getSelectedChoices());
+
+        return questionData;
     }
 }

@@ -15,6 +15,7 @@ import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
 
+    private FormService formService;
     private final List<Question> questionList = new ArrayList<>();
     private final Map<Integer, EditText> textInputs = new HashMap<>();
     private final Map<Integer, RadioGroup> singleChoices = new HashMap<>();
@@ -27,20 +28,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FormService formService = new FormService(db);
+        formService = new FormService(db);
 
-        String selectedFormTitle = getIntent().getStringExtra("formTitle");
+        Form form = (Form) getIntent().getSerializableExtra("selectedForm");
 
-        formService.getAvailableForms(dataSnapshot -> {
-            for (QueryDocumentSnapshot document : dataSnapshot) {
-                Map<String, Object> data = document.getData();
-                Form form = Form.fromData(data);
-                if (form != null && form.getTitle().equals(selectedFormTitle)) {
-                    bootFormComponents(form);
-                    break;
-                }
-            }
-        });
+        if (form == null) {
+            Toast.makeText(this, "Houve um erro ao carregar o formulário", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        bootFormComponents(form);
     }
 
     protected void bootFormComponents(Form form) {
@@ -103,10 +100,10 @@ public class MainActivity extends AppCompatActivity {
             questionContainer.addView(card, cardParams);
         }
 
-        addSubmitButton(questionContainer);
+        addSubmitButton(questionContainer, form);
     }
 
-    private void addSubmitButton(LinearLayout container) {
+    private void addSubmitButton(LinearLayout container, Form form) {
         Button submitButton = new Button(this);
         submitButton.setText("Enviar Respostas");
         submitButton.setBackgroundColor(Color.parseColor("#00AEEF"));
@@ -123,14 +120,16 @@ public class MainActivity extends AppCompatActivity {
                     questionList, textInputs, singleChoices, multipleChoices, questionLabels
             );
 
-            JSONObject answers = processor.generateAndValidateAnswers();
+            List<Question> questionsWithAnswers = processor.generateAndValidateAnswers();
 
-            if (answers == null) {
+            if (questionsWithAnswers == null) {
                 Toast.makeText(this, "Por favor, responda todas as perguntas.", Toast.LENGTH_SHORT).show();
-            } else {
-                Log.d("RESPOSTAS_JSON", answers.toString());
-                Toast.makeText(this, "Formulário enviado com sucesso!", Toast.LENGTH_LONG).show();
+                return;
             }
+
+            form.setQuestions(questionsWithAnswers.toArray(new Question[0]));
+            FormAnswer formAnswer = new FormAnswer("user_test", form);
+            formService.saveFormAnswer(formAnswer, () -> Toast.makeText(this, "Formulário enviado com sucesso!", Toast.LENGTH_LONG).show());
         });
 
         container.addView(submitButton);

@@ -13,15 +13,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.feevale_logicando.domain.Form;
 import com.example.feevale_logicando.service.FormService;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Map;
 
 public class FormListActivity extends AppCompatActivity {
-
     private LinearLayout formListContainer;
-    private final ArrayList<Form> formList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,23 +27,16 @@ public class FormListActivity extends AppCompatActivity {
 
         formListContainer = findViewById(R.id.formListContainer);
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FormService formService = new FormService(db);
+        Form[] forms = (Form[]) getIntent().getSerializableExtra("availableForms");
 
-        formService.getAvailableForms(dataSnapshot -> {
-            for (QueryDocumentSnapshot document : dataSnapshot) {
-                Map<String, Object> data = document.getData();
-                Form form = Form.fromData(data);
-                if (form != null) {
-                    formList.add(form);
-                    addFormButton(form);
-                }
-            }
+        if (forms == null || forms.length == 0) {
+            Toast.makeText(this, "Nenhum formulário disponível no momento.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-            if (formList.isEmpty()) {
-                Toast.makeText(this, "Nenhum formulário disponível no momento.", Toast.LENGTH_SHORT).show();
-            }
-        });
+        for (Form form: forms) {
+            addFormButton(form);
+        }
     }
 
     private void addFormButton(Form form) {
@@ -54,7 +44,7 @@ public class FormListActivity extends AppCompatActivity {
         button.setText(form.getTitle());
         button.setOnClickListener(v -> {
             Intent intent = new Intent(FormListActivity.this, MainActivity.class);
-            intent.putExtra("formTitle", form.getTitle());
+            intent.putExtra("selectedForm", form);
             startActivity(intent);
         });
         formListContainer.addView(button);
