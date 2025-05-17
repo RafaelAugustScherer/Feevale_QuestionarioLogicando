@@ -1,36 +1,25 @@
 package com.example.feevale_logicando;
 
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
-
-import com.example.feevale_logicando.domain.Choice;
-import com.example.feevale_logicando.domain.Form;
-import com.example.feevale_logicando.domain.Question;
-import com.example.feevale_logicando.domain.QuestionMultipleChoice;
-import com.example.feevale_logicando.domain.QuestionSingleChoice;
-import com.example.feevale_logicando.domain.QuestionText;
+import com.example.feevale_logicando.domain.*;
 import com.example.feevale_logicando.service.FormService;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-
-import java.util.ArrayList;
-import java.util.Map;
+import org.json.JSONObject;
+import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
+
+    private final List<Question> questionList = new ArrayList<>();
+    private final Map<Integer, EditText> textInputs = new HashMap<>();
+    private final Map<Integer, RadioGroup> singleChoices = new HashMap<>();
+    private final Map<Integer, List<CheckBox>> multipleChoices = new HashMap<>();
+    private final Map<Integer, TextView> questionLabels = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +49,13 @@ public class MainActivity extends AppCompatActivity {
         formTitle.setText(form.getTitle());
 
         for (Question question : form.getQuestions()) {
+            int qId = question.getId();
+            questionList.add(question);
+
             CardView card = new CardView(this);
-            card.setCardElevation(6);
-            card.setRadius(12);
+            card.setCardElevation(8);
+            card.setRadius(16);
             card.setUseCompatPadding(true);
-            card.setCardBackgroundColor(Color.WHITE);
 
             LinearLayout cardLayout = new LinearLayout(this);
             cardLayout.setOrientation(LinearLayout.VERTICAL);
@@ -75,31 +66,38 @@ public class MainActivity extends AppCompatActivity {
             questionText.setTextColor(Color.DKGRAY);
             questionText.setTextSize(16f);
             cardLayout.addView(questionText);
+            questionLabels.put(qId, questionText);
 
             if (question instanceof QuestionText) {
-                EditText answerEditText = new EditText(this);
-                styleEditText(answerEditText);
-                cardLayout.addView(answerEditText);
+                EditText et = new EditText(this);
+                textInputs.put(qId, et);
+                cardLayout.addView(et);
             } else if (question instanceof QuestionSingleChoice) {
-                RadioGroup radioGroup = new RadioGroup(this);
+                RadioGroup rg = new RadioGroup(this);
                 for (Choice choice : ((QuestionSingleChoice) question).getChoices()) {
                     RadioButton rb = new RadioButton(this);
                     rb.setText(choice.getText());
-                    radioGroup.addView(rb);
+                    rb.setTag(choice.getId());
+                    rg.addView(rb);
                 }
-                cardLayout.addView(radioGroup);
+                singleChoices.put(qId, rg);
+                cardLayout.addView(rg);
             } else if (question instanceof QuestionMultipleChoice) {
+                List<CheckBox> checkboxes = new ArrayList<>();
                 for (Choice choice : ((QuestionMultipleChoice) question).getChoices()) {
                     CheckBox cb = new CheckBox(this);
                     cb.setText(choice.getText());
+                    cb.setTag(choice.getId());
+                    checkboxes.add(cb);
                     cardLayout.addView(cb);
                 }
+                multipleChoices.put(qId, checkboxes);
             }
 
             card.addView(cardLayout);
             LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
             );
             cardParams.setMargins(0, 0, 0, 32);
             questionContainer.addView(card, cardParams);
@@ -108,127 +106,33 @@ public class MainActivity extends AppCompatActivity {
         addSubmitButton(questionContainer);
     }
 
-    private void styleEditText(EditText editText) {
-        editText.setBackgroundResource(android.R.drawable.edit_text);
-        editText.setPadding(24, 16, 24, 16);
-        editText.setTextColor(Color.BLACK);
-        editText.setHintTextColor(Color.GRAY);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 8, 0, 16);
-        editText.setLayoutParams(params);
-    }
-
     private void addSubmitButton(LinearLayout container) {
         Button submitButton = new Button(this);
         submitButton.setText("Enviar Respostas");
         submitButton.setBackgroundColor(Color.parseColor("#00AEEF"));
         submitButton.setTextColor(Color.WHITE);
-        submitButton.setAllCaps(false);
-        submitButton.setPadding(32, 24, 32, 24);
-        submitButton.setTextSize(16f);
-        submitButton.setTypeface(null, Typeface.BOLD);Button btn = new Button(this);
-        btn.setText("Enviar Respostas");
-        btn.setBackgroundColor(Color.parseColor("#00AEEF"));
-        btn.setTextColor(Color.WHITE);
-        btn.setAllCaps(false);
-        btn.setPadding(32, 24, 32, 24);
-        btn.setTextSize(16f);
-        btn.setTypeface(null, Typeface.BOLD);
+        submitButton.setPadding(24, 24, 24, 24);
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params.setMargins(0, 32, 0, 32);
         submitButton.setLayoutParams(params);
 
-        submitButton.setOnClickListener(v ->
-                Toast.makeText(this, "Formulário enviado!", Toast.LENGTH_LONG).show()
-        );
+        submitButton.setOnClickListener(v -> {
+            FormAnswerProcessor processor = new FormAnswerProcessor(
+                    questionList, textInputs, singleChoices, multipleChoices, questionLabels
+            );
+
+            JSONObject answers = processor.generateAndValidateAnswers();
+
+            if (answers == null) {
+                Toast.makeText(this, "Por favor, responda todas as perguntas.", Toast.LENGTH_SHORT).show();
+            } else {
+                Log.d("RESPOSTAS_JSON", answers.toString());
+                Toast.makeText(this, "Formulário enviado com sucesso!", Toast.LENGTH_LONG).show();
+            }
+        });
 
         container.addView(submitButton);
     }
 }
-
-
-//
-//    //Text
-//    QuestionText questionText1 = new QuestionText(1, "Porque usar Android Studio?", "text");
-//    QuestionText questionText2 = new QuestionText(4, "Porque usar Android Studio2?", "text");
-//    //Single
-//    Choice choicesingle1 = new Choice(1, "Sim");
-//    Choice choicesingle2 = new Choice(2, "Não");
-//    Choice choicesingle3 = new Choice(3, "Talvez");
-//
-//    Choice[] choicessingle = new Choice[]{choicesingle1, choicesingle2, choicesingle3};
-//    Question questionSingle = new QuestionSingleChoice(2, "Usaria Android Studio futuramente?", "Single",choicessingle);
-//
-//
-//    //Multiple
-//    Choice choicemultiple1= new Choice(1, "Flexibilidade");
-//    Choice choicemultiple2 = new Choice(2, "Layout Bonito");
-//    Choice choicemultiple3 = new Choice(3, "Facilidade de uso");
-//
-//    Choice[] choicesMultiple = new Choice[]{choicemultiple1, choicemultiple2, choicemultiple3};
-//    Question questionMultiple = new QuestionMultipleChoice(3,"Quais são os pontos que mais gosta no Android Studio?", "Multiple", choicesMultiple);
-//
-//    Question[] questions = new Question[]{questionText1, questionText2, questionMultiple, questionSingle};
-//    Form form = new Form(
-//            "Primeiro teste dos guri",
-//            new Date(),
-//            new Date(System.currentTimeMillis() + 86400000L),
-//            questions
-//    );
-
-
-//package com.example.feevale_logicando;
-//
-//import android.os.Bundle;
-//import android.util.Log;
-//
-//import androidx.activity.EdgeToEdge;
-//import androidx.appcompat.app.AppCompatActivity;
-//import androidx.core.graphics.Insets;
-//import androidx.core.view.ViewCompat;
-//import androidx.core.view.WindowInsetsCompat;
-//
-//import com.example.feevale_logicando.domain.Form;
-//import com.example.feevale_logicando.service.FormService;
-//import com.example.feevale_logicando.service.OnGetDataListener;
-//import com.google.firebase.firestore.FirebaseFirestore;
-//import com.google.firebase.firestore.QueryDocumentSnapshot;
-//import com.google.firebase.firestore.QuerySnapshot;
-//
-//import java.util.ArrayList;
-//import java.util.Map;
-//
-//public class MainActivity extends AppCompatActivity {
-//
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        EdgeToEdge.enable(this);
-//        setContentView(R.layout.activity_main);
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-//            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-//            return insets;
-//        });
-//
-//        FirebaseFirestore db = FirebaseFirestore.getInstance();
-//
-//        FormService formService = new FormService(db);
-//
-//        ArrayList<Form> formList = new ArrayList<>();
-//        formService.getAvailableForms(new OnGetDataListener() {
-//            @Override
-//            public void onSuccess(QuerySnapshot dataSnapshot) {
-//                Log.d("TEST", dataSnapshot.toString());
-//                for (QueryDocumentSnapshot document : dataSnapshot) {
-//                    Map<String, Object> data = document.getData();
-//                    formList.add(Form.fromData(data));
-//                }
-//                Log.d("TEST", String.format("List size: %d", formList.size()));
-//            }
-//        });
-//    }
-//}
