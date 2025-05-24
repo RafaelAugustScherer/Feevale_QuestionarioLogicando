@@ -91,11 +91,22 @@
     .option-row input {
         flex-grow: 1;
     }
+
+    .form-card {
+        border: 2px groove threedface;
+    }
+
+    .form-card button {
+        margin: 10px 5px;
+        font-size: 20px;
+        padding: 3px;
+        border: 0;
+        cursor: pointer;
+    }
 </style>
 
 <body>
     <h1>Questionário Logicando</h1>
-    <h2>Criação de Questionários</h2>
     <form id="login-form">
         <fieldset>
             <legend>Autenticação do usuário</legend>
@@ -115,6 +126,10 @@
             <button type="submit">Validar acesso</button>
         </fieldset>
     </form>
+    <h2>Gerenciar Formulários</h2>
+    <section id="manage-forms">
+    </section>
+    <h2>Criação de Questionários</h2>
     <form id="fields-form">
         <fieldset>
             <legend>Informações do Questionário</legend>
@@ -164,6 +179,10 @@
 </script>
 <script
     src="./js/loginForm.js"
+    type="module"
+></script>
+<script
+    src="./js/manageForms.js"
     type="module"
 ></script>
 <script

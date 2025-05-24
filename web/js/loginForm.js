@@ -27,7 +27,10 @@ loginForm.addEventListener("submit", e => {
             const user = userCredential.user;
             globalThis.user = user;
 
-            loginForm.querySelector('.error').remove();
+            loginForm.querySelector('.error')?.remove();
+            if(!loginForm.querySelector('.success')) {
+                loginForm.firstElementChild.appendChild(Object.assign(document.createElement('span'), { textContent: 'Usuário autenticado com sucesso!', className: 'success' }));
+            };
         })
         .catch(error => {
             console.log(`Login error: Error with code ${error.code} and message ${error.message} `);
@@ -38,8 +41,8 @@ loginForm.addEventListener("submit", e => {
                 errorMessageText = 'Credenciais de acesso inválidas.';
             }
 
-            loginForm.querySelector('.success').remove();
-            loginForm.querySelector('.error').remove();
+            loginForm.querySelector('.success')?.remove();
+            loginForm.querySelector('.error')?.remove();
             loginForm.firstElementChild.appendChild(Object.assign(document.createElement('span'), { textContent: errorMessageText, className: 'error' }));
         });
 });
