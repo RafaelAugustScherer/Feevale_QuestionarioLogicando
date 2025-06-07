@@ -34,6 +34,8 @@ public class FormAnswerProcessor {
     }
 
     public List<Question> generateAndValidateAnswers() {
+        boolean isError = false;
+
         for (Question q : questions) {
             int qId = q.getId();
             TextView label = questionLabels.get(qId);
@@ -44,7 +46,8 @@ public class FormAnswerProcessor {
                     String text = textInputs.get(qId).getText().toString().trim();
                     if (text.isEmpty()) {
                         label.setTextColor(Color.RED);
-                        return null;
+                        isError = true;
+                        continue;
                     }
                     ((QuestionText) q).setAnswer(text);
                 } else if (q instanceof QuestionSingleChoice) {
@@ -52,11 +55,13 @@ public class FormAnswerProcessor {
                     int selected = rg.getCheckedRadioButtonId();
                     if (selected == -1) {
                         label.setTextColor(Color.RED);
-                        return null;
+                        isError = true;
+                        continue;
                     }
                     RadioButton selectedButton = rg.findViewById(selected);
                     ((QuestionSingleChoice) q).setSelectedChoice((int) selectedButton.getTag());
                 } else if (q instanceof QuestionMultipleChoice) {
+                    ((QuestionMultipleChoice) q).cleanChoices();
                     for (CheckBox cb : multiInputs.get(qId)) {
                         if (cb.isChecked()) {
                             ((QuestionMultipleChoice) q).addSelectedChoice((int) cb.getTag());
@@ -64,13 +69,18 @@ public class FormAnswerProcessor {
                     }
                     if (((QuestionMultipleChoice) q).getSelectedChoices().isEmpty()) {
                         label.setTextColor(Color.RED);
-                        return null;
+                        isError = true;
                     }
                 }
             } catch (Exception e) {
                 Log.e("ANSWER_PROCESSOR", "Erro na pergunta " + qId, e);
             }
         }
+
+        if (isError) {
+            return null;
+        }
+
         return questions;
     }
 }

@@ -249,7 +249,7 @@ fieldsForm.addEventListener('submit', async (e) => {
         createdAt: serverTimestamp()
     })
         .then(() => {
-            fieldsForm.querySelector('.error').remove();
+            fieldsForm.querySelector('.error')?.remove();
             const successSpan = fieldsForm.appendChild(Object.assign(document.createElement('span'), { textContent: 'Questionário criado com sucesso!', className: 'success' }));
             setTimeout(() => {
                 successSpan.remove();
@@ -257,7 +257,7 @@ fieldsForm.addEventListener('submit', async (e) => {
         })
         .catch(error => {
             console.error(error);
-            fieldsForm.querySelector('.error').remove();
+            fieldsForm.querySelector('.error')?.remove();
             loginForm.firstElementChild.appendChild(Object.assign(document.createElement('span'), { textContent: 'Houve um erro ao criar o questionário', className: 'error' }));
         });
 });

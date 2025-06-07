@@ -139,37 +139,42 @@ export async function downloadFormAnswersCSV(formId) {
   const formData = formSnap.data();
   const questionsArr = formData.questions ?? [];
 
-  const qMap = new Map(questionsArr.map(q => [q.questionId ?? q.id ?? q.idQuestion ?? q.idPergunta, q.text]));
+  const qMap = new Map(questionsArr.map(q => [q.questionId, q.text]));
 
   const ansSnap = await getDocs(collection(db, 'forms', formId, 'answers'));
 
-  const fixedHeaders = ['answerId', 'userName', 'userId', 'createdAt'];
+  const fixedHeaders = ['ID_resposta', 'Usuário'];
   const questionHeaders = questionsArr.map(q => q.text);
   const headers = [...fixedHeaders, ...questionHeaders];
 
   const rows = [];
   ansSnap.forEach(d => {
     const data = d.data();
+
     const row = {
-      answerId: d.id,
-      userName: data.userName ?? '',
-      userId: data.userId ?? '',
-      createdAt: data.createdAt?.toDate?.().toISOString?.() ?? '',
+      ID_resposta: d.id,
+      Usuário: data.userName ?? '',
     };
 
-    const answersBlock = data.answers ?? data.respostas ?? data.responses ?? [];
+    const answersBlock = data.answers ?? [];
 
     if(Array.isArray(answersBlock)) {
       answersBlock.forEach(a => {
-        const qId = a.questionId ?? a.id ?? a.qid ?? a.question ?? a.pergunta;
-        const qText = qMap.get(qId) ?? `Questão ${qId}`;
-        const value = a.answer ?? a.value ?? a.text ?? a.choice ?? a.choices ?? a.selectedChoice ?? a.selectedChoices ?? '';
-        row[qText] = stringifyAnswer(value);
-      });
-    } else if(typeof answersBlock === 'object') {
-      Object.entries(answersBlock).forEach(([k, v]) => {
-        const qText = qMap.get(+k) ?? qMap.get(k) ?? `Questão ${k}`;
-        row[qText] = stringifyAnswer(v);
+        const question = questionsArr.find(question => question.questionId == a.questionId);
+        const questionText = question.text;
+        const questionChoices = question.choices;
+
+        let value = a.selectedChoice ?? a.selectedChoices ?? a.answer;
+
+        if(typeof value === 'number') {
+          console.log(questionChoices);
+          value = questionChoices?.find(choice => choice.choiceId == value).text;
+        }
+        if(typeof value === 'object') {
+          value = questionChoices?.filter(choice => value.includes(choice.choiceId)).map(choice => choice.text).join(', ');
+        }
+
+        row[questionText] = stringifyAnswer(value);
       });
     }
 

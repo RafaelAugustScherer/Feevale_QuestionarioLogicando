@@ -51,6 +51,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
                     Intent intent = new Intent(WelcomeActivity.this, FormListActivity.class);
                     intent.putExtra("availableForms", forms.toArray(new Form[0]));
+                    intent.putExtra("name", name);
 
                     startActivity(intent);
                 }

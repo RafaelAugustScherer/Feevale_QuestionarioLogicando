@@ -19,6 +19,7 @@ import java.util.Map;
 
 public class FormListActivity extends AppCompatActivity {
     private LinearLayout formListContainer;
+    private String name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +29,7 @@ public class FormListActivity extends AppCompatActivity {
         formListContainer = findViewById(R.id.formListContainer);
 
         Form[] forms = (Form[]) getIntent().getSerializableExtra("availableForms");
+        this.name = getIntent().getStringExtra("name");
 
         if (forms == null || forms.length == 0) {
             Toast.makeText(this, "Nenhum formulário disponível no momento.", Toast.LENGTH_SHORT).show();
@@ -45,6 +47,7 @@ public class FormListActivity extends AppCompatActivity {
         button.setOnClickListener(v -> {
             Intent intent = new Intent(FormListActivity.this, MainActivity.class);
             intent.putExtra("selectedForm", form);
+            intent.putExtra("name", this.name);
             startActivity(intent);
         });
         formListContainer.addView(button);

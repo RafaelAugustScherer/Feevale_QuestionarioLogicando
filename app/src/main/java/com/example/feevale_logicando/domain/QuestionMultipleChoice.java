@@ -31,8 +31,8 @@ public class QuestionMultipleChoice extends Question {
         this.selectedChoices.add(choiceId);
     }
 
-    public void removeSelectedChoice(int choiceId) {
-        this.selectedChoices.remove(choiceId);
+    public void cleanChoices() {
+        this.selectedChoices = new ArrayList<>();
     }
 
     public Map<String, Object> toAnswerData() {

@@ -1,5 +1,6 @@
 package com.example.feevale_logicando;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,13 +15,13 @@ import org.json.JSONObject;
 import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
-
     private FormService formService;
     private final List<Question> questionList = new ArrayList<>();
     private final Map<Integer, EditText> textInputs = new HashMap<>();
     private final Map<Integer, RadioGroup> singleChoices = new HashMap<>();
     private final Map<Integer, List<CheckBox>> multipleChoices = new HashMap<>();
     private final Map<Integer, TextView> questionLabels = new HashMap<>();
+    private String name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
         formService = new FormService(db);
 
         Form form = (Form) getIntent().getSerializableExtra("selectedForm");
+        this.name = getIntent().getStringExtra("name");
 
         if (form == null) {
             Toast.makeText(this, "Houve um erro ao carregar o formulário", Toast.LENGTH_SHORT).show();
@@ -128,8 +130,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             form.setQuestions(questionsWithAnswers.toArray(new Question[0]));
-            FormAnswer formAnswer = new FormAnswer("user_test", form);
+            FormAnswer formAnswer = new FormAnswer(this.name, form);
             formService.saveFormAnswer(formAnswer, () -> Toast.makeText(this, "Formulário enviado com sucesso!", Toast.LENGTH_LONG).show());
+
+            Intent intent = new Intent(MainActivity.this, WelcomeActivity.class);
+            startActivity(intent);
         });
 
         container.addView(submitButton);
