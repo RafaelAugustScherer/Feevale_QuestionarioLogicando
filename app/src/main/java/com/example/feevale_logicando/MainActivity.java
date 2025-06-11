@@ -1,12 +1,17 @@
 package com.example.feevale_logicando;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
+
 import com.example.feevale_logicando.domain.*;
 import com.example.feevale_logicando.service.FormService;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -62,8 +67,13 @@ public class MainActivity extends AppCompatActivity {
 
             TextView questionText = new TextView(this);
             questionText.setText(question.getText());
-            questionText.setTextColor(Color.DKGRAY);
+            questionText.setTypeface(null, Typeface.BOLD);
             questionText.setTextSize(16f);
+
+            TypedValue typedValue = new TypedValue();
+            getTheme().resolveAttribute(android.R.attr.textColorPrimary, typedValue, true);
+            questionText.setTextColor(ContextCompat.getColor(this, typedValue.resourceId));
+
             cardLayout.addView(questionText);
             questionLabels.put(qId, questionText);
 
